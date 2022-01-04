@@ -164,7 +164,7 @@
                                                 </div>
 
 
-                                                <di class="row">
+                                                {{--  <di class="row">
                                                     <div class="col-md-6 ">
                                                         <div class="form-group">
                                                             <label for="projectinput1"> العنوان  </label>
@@ -180,7 +180,7 @@
                                                         </div>
                                                     </div>
 
-                                                </di>
+                                                </di>  --}}
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="form-group mt-1">
@@ -202,7 +202,7 @@
                                             </div>
 
 
-                                            <div id="map" style="height: 500px;width: 1000px;"></div>
+                                            {{--  <div id="map" style="height: 500px;width: 1000px;"></div>  --}}
 
                                             <div class="form-actions">
                                                 <button type="button" class="btn btn-warning mr-1"
@@ -227,7 +227,7 @@
 
 @endsection
 
-
+{{--  
 @section('script')
 
     <script>
@@ -427,4 +427,4 @@
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKZAuxH9xTzD2DLY2nKSPKrgRi2_y0ejs&libraries=places&callback=initAutocomplete&language=ar&region=EG
          async defer"></script>
-@stop
+@stop  --}}

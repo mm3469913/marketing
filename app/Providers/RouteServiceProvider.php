@@ -49,7 +49,7 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->mapWebRoutes();
 
-        // $this->mapSiteRoutes();
+        $this->mapSiteRoutes();
 
         $this->mapAdminRoutes();
 
@@ -80,8 +80,12 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapAdminRoutes()
     {
-        Route::prefix('Admin')
-        ->middleware('web')
+        // Route::prefix('Admin')
+        // ->middleware('web')
+        //     ->namespace($this->namespace)
+        //    // ->prefix('admin')
+        //     ->group(base_path('routes/admin.php'));
+            Route::middleware('web')
             ->namespace($this->namespace)
            // ->prefix('admin')
             ->group(base_path('routes/admin.php'));
@@ -94,12 +98,12 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    // protected function mapSiteRoutes()
-    // {
-    //     Route::middleware('web')
-    //         ->namespace($this->namespace)
-    //         ->group(base_path('routes/site.php'));
-    // }
+    protected function mapSiteRoutes()
+    {
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/site.php'));
+    }
 
 
     /**

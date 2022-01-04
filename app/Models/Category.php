@@ -8,6 +8,7 @@ use phpDocumentor\Reflection\Types\Self_;
 
 class Category extends Model
 {
+    
     use Translatable;
 
     /**
@@ -15,7 +16,7 @@ class Category extends Model
      *
      * @var array
      */
-    protected $with = ['s'];
+    protected $with = ['translations'];
 
 
     protected $translatedAttributes = ['name'];
@@ -72,5 +73,6 @@ class Category extends Model
     {
         return $this -> belongsToMany(Product::class,'product_categories');
     }
+
 
 }

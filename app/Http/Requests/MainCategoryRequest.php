@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Enumerations\CategoryType;
 
 class MainCategoryRequest extends FormRequest
 {
@@ -24,11 +25,9 @@ class MainCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'photo' => 'required_without:id|mimes:jpg,jpeg,png',
-            'category' => 'required|array|min:1',
-            'category.*.name' => 'required',
-            'category.*.abbr' => 'required',
-            //'category.*.active' => 'required',
-        ];
+            'name' => 'required',
+            'type' => 'required|in:1,2',
+            'slug' => 'required|unique:categories,slug,'.$this -> id
+       ];
     }
 }

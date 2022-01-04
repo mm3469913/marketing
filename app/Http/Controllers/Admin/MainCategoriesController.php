@@ -3,84 +3,58 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Enumerations\CategoryType;
 use App\Http\Requests\MainCategoryRequest;
-use App\Models\MainCategory;
+use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Config;
 use DB;
-use Illuminate\Support\Str;;
 
 class MainCategoriesController extends Controller
 {
     public function index()
     {
-        $default_lang = get_default_lang();
-        $categories = MainCategory::where('translation_lang', $default_lang)
-            ->selection()
-            ->get();
-
-        return view('admin.maincategories.index', compact('categories'));
+        $categories = Category::with('_parent')->orderBy('id','DESC') -> paginate(PAGINATION_COUNT);
+        return view('admin.categories.index', compact('categories'));
     }
+
     public function create()
     {
-        return view('admin.maincategories.create');
+         $categories =   Category::select('id','parent_id')->get();
+        return view('admin.categories.create',compact('categories'));
     }
 
     public function store(MainCategoryRequest $request)
     {
 
         try {
-            //return $request;
-
-            $main_categories = collect($request->category);
-
-            $filter = $main_categories->filter(function ($value, $key) {
-                return $value['abbr'] == get_default_lang();
-            });
-
-            $default_category = array_values($filter->all()) [0];
-
-
-            $filePath = "";
-            if ($request->has('photo')) {
-
-                $filePath = uploadImage('maincategories', $request->photo);
-            }
 
             DB::beginTransaction();
 
-            $default_category_id = MainCategory::insertGetId([
-                'translation_lang' => $default_category['abbr'],
-                'translation_of' => 0,
-                'name' => $default_category['name'],
-                'slug' => $default_category['name'],
-                'photo' => $filePath
-            ]);
+            //validation
 
-            $categories = $main_categories->filter(function ($value, $key) {
-                return $value['abbr'] != get_default_lang();
-            });
+            if (!$request->has('is_active'))
+                $request->request->add(['is_active' => 0]);
+            else
+                $request->request->add(['is_active' => 1]);
 
+            //if user choose main category then we must remove paret id from the request
 
-            if (isset($categories) && $categories->count()) {
-
-                $categories_arr = [];
-                foreach ($categories as $category) {
-                    $categories_arr[] = [
-                        'translation_lang' => $category['abbr'],
-                        'translation_of' => $default_category_id,
-                        'name' => $category['name'],
-                        'slug' => $category['name'],
-                        'photo' => $filePath
-                    ];
-                }
-
-                MainCategory::insert($categories_arr);
+            if($request -> type == CategoryType::mainCategory) //main category
+            {
+                $request->request->add(['parent_id' => null]);
             }
 
-            DB::commit();
+            //if he choose child category we mus t add parent id
 
-            return redirect()->route('admin.maincategories')->with(['success' => 'تم الحفظ بنجاح']);
+
+            $category = Category::create($request->except('_token'));
+
+            //save translations
+            $category->name = $request->name;
+            $category->save();
+            DB::commit();
+            return redirect()->route('admin.maincategories')->with(['success' => 'تم ألاضافة بنجاح']);
+            
 
         } catch (\Exception $ex) {
             DB::rollback();
@@ -90,58 +64,43 @@ class MainCategoriesController extends Controller
     }
 
 
-    public function edit($mainCat_id)
+    public function edit($id)
     {
-        //get specific categories and its translations
-        $mainCategory = MainCategory::with('categories')
-            ->selection()
-            ->find($mainCat_id);
 
-        if (!$mainCategory)
+        //get specific categories and its translations
+        $category = Category::orderBy('id', 'DESC')->find($id);
+
+        if (!$category)
             return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود ']);
 
-        return view('admin.maincategories.edit', compact('mainCategory'));
-    
-
-        
+        return view('admin.categories.edit', compact('category'));
 
     }
 
-    public function update($mainCat_id, MainCategoryRequest $request)
+
+    public function update($id, MainCategoryRequest $request)
     {
-
         try {
-            $main_category = MainCategory::find($mainCat_id);
+            //validation
 
-            if (!$main_category)
-                return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود ']);
+            //update DB
 
-            // update date
 
-            $category = array_values($request->category) [0];
+            $category = Category::find($id);
 
-            if (!$request->has('category.0.active'))
-                $request->request->add(['active' => 0]);
+            if (!$category)
+                return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود']);
+
+            if (!$request->has('is_active'))
+                $request->request->add(['is_active' => 0]);
             else
-                $request->request->add(['active' => 1]);
+                $request->request->add(['is_active' => 1]);
 
+            $category->update($request->all());
 
-            MainCategory::where('id', $mainCat_id)
-                ->update([
-                    'name' => $category['name'],
-                    'active' => $request->active,
-                ]);
-
-            // save image
-
-            if ($request->has('photo')) {
-                $filePath = uploadImage('maincategories', $request->photo);
-                MainCategory::where('id', $mainCat_id)
-                    ->update([
-                        'photo' => $filePath,
-                    ]);
-            }
-
+            //save translations
+            $category->name = $request->name;
+            $category->save();
 
             return redirect()->route('admin.maincategories')->with(['success' => 'تم ألتحديث بنجاح']);
         } catch (\Exception $ex) {
@@ -152,44 +111,19 @@ class MainCategoriesController extends Controller
     }
 
 
-
     public function destroy($id)
     {
 
         try {
-            $maincategory = MainCategory::find($id);
-            if (!$maincategory)
+            //get specific categories and its translations
+            $category = Category::orderBy('id', 'DESC')->find($id);
+
+            if (!$category)
                 return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود ']);
 
-            $vendors = $maincategory->vendors();
-            if (isset($vendors) && $vendors->count() > 0) {
-                return redirect()->route('admin.maincategories')->with(['error' => 'لأ يمكن حذف هذا القسم  ']);
-            }
+            $category->delete();
 
-            $image = Str::after($maincategory->photo, 'assets/');
-            $image = base_path('assets/' . $image);
-            unlink($image); //delete from folder
-
-            $maincategory->delete();
-            return redirect()->route('admin.maincategories')->with(['success' => 'تم حذف القسم بنجاح']);
-
-        } catch (\Exception $ex) {
-            return redirect()->route('admin.maincategories')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
-        }
-    }
-
-    public function changeStatus($id)
-    {
-        try {
-            $maincategory = MainCategory::find($id);
-            if (!$maincategory)
-                return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود ']);
-
-           $status =  $maincategory -> active  == 0 ? 1 : 0;
-
-           $maincategory -> update(['active' =>$status ]);
-
-            return redirect()->route('admin.maincategories')->with(['success' => ' تم تغيير الحالة بنجاح ']);
+            return redirect()->route('admin.maincategories')->with(['success' => 'تم  الحذف بنجاح']);
 
         } catch (\Exception $ex) {
             return redirect()->route('admin.maincategories')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);

@@ -52,7 +52,7 @@ class VendorCreated extends Notification
             ->salutation('Yours Faithfully')
             ->line('The introduction to the notification.')
             ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+            ->line('Thank you for using our application!'); 
     }
 
     /**

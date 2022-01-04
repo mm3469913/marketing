@@ -15,9 +15,23 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('front.home');
-});
+})->name('home');
+
+// Route::group([
+//     'prefix' => LaravelLocalization::setLocale(),
+//     'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']
+// ], function () {
 
 
-Auth::routes();
+    
+//     Route::group(['namespace' => 'Site', 'middleware' => 'auth'], function () {
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+//         Route::get('profile',function () {
+//             return "you are wlacom";});
+//     });
+//     Route::group(['namespace' => 'Site', 'middleware' => 'guest'], function () {
+
+//     });
+
+
+// });

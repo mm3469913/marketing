@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Observers\MainCategoryObserver;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\SubCategory;
 class MainCategory extends Model
 {
     protected $table = 'main_categories';
@@ -12,6 +12,11 @@ class MainCategory extends Model
     protected $fillable = [
         'translation_lang', 'translation_of','name','slug','photo','active','created_at','updated_at',
     ];
+    protected static function boot()
+    {
+        parent::boot();
+        MainCategory::observe(MainCategoryObserver::class);
+    }
     public function scopeActive($query){
         return $query -> where('active',1);
     }
@@ -54,5 +59,6 @@ class MainCategory extends Model
 
         return $this -> hasMany('App\Models\Vendor','category_id','id');
     }
-
+    
 }
+ 

@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Enumerations;
+use Spatie\Enum\Enum;
 
-class CategoryType
+final class CategoryType extends Enum
 {
-
+    const mainCategory = 1;
+    const subCategory = 2;
 }
